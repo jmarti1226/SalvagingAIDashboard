@@ -1,0 +1,528 @@
+﻿<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Threat Intel Dashboard</title>
+  <style>
+    :root {
+      --bg-1: #f7fbff;
+      --bg-2: #eef4f8;
+      --panel: #ffffffd9;
+      --text: #10212f;
+      --muted: #4d6273;
+      --line: #d6e2ec;
+      --accent: #0e7c86;
+      --accent-soft: #d8f0f2;
+      --shadow: 0 18px 40px rgba(6, 25, 40, 0.09);
+      --radius: 14px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", "Trebuchet MS", "Helvetica Neue", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1100px 480px at 8% -20%, #c8e8f6 0%, transparent 65%),
+        radial-gradient(900px 420px at 92% -30%, #d3f0e8 0%, transparent 62%),
+        linear-gradient(175deg, var(--bg-1), var(--bg-2));
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 1080px;
+      margin: 0 auto;
+      background: var(--panel);
+      border: 1px solid #ffffffa8;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(6px);
+      overflow: hidden;
+      animation: slideIn .45s ease-out;
+    }
+
+    .hero {
+      padding: 22px 22px 8px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffffcc, #f5fafc95);
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(1.35rem, 2vw, 1.8rem);
+      letter-spacing: 0.02em;
+      line-height: 1.2;
+    }
+
+    .title-lockup {
+      display: inline-flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .title-kicker {
+      display: inline-flex;
+      align-items: center;
+      width: fit-content;
+      gap: 7px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #b7d9e8;
+      background: linear-gradient(180deg, #f2fbff, #e8f5fb);
+      color: #1a5a6f;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .title-kicker::before {
+      content: "";
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: linear-gradient(180deg, #22c55e, #0ea5e9);
+      box-shadow: 0 0 0 3px #dcf5ea;
+    }
+
+    .title-main {
+      font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+      font-size: clamp(1.5rem, 2.6vw, 2.15rem);
+      letter-spacing: 0.01em;
+      line-height: 1.1;
+      background: linear-gradient(90deg, #0f5f74 0%, #0e7c86 45%, #1f8f53 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: 0 10px 24px rgba(14, 124, 134, 0.16);
+    }
+
+    .subtitle {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .hero-tile-wrap {
+      padding: 0 22px 16px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #ffffffcc, #f5fafc95);
+    }
+
+    .hero-tile {
+      position: relative;
+      border: 1px solid #d5e4ef;
+      border-radius: 14px;
+      overflow: hidden;
+      background:
+        radial-gradient(80% 180% at 8% -40%, rgba(125, 211, 252, 0.35), transparent 55%),
+        radial-gradient(80% 180% at 92% -50%, rgba(134, 239, 172, 0.32), transparent 55%),
+        linear-gradient(130deg, #f2fbff 0%, #eef8ff 45%, #f6fffa 100%);
+      min-height: 140px;
+      box-shadow: inset 0 0 0 1px #ffffffa6;
+    }
+
+    .hero-tile::before {
+      content: "";
+      position: absolute;
+      inset: -15% -35%;
+      background: linear-gradient(90deg, transparent 20%, rgba(34, 197, 94, 0.12) 45%, rgba(14, 165, 233, 0.16) 55%, transparent 80%);
+      transform: translateX(-45%);
+      animation: sweep 7s linear infinite;
+      pointer-events: none;
+    }
+
+    .hero-tile::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 50%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(14, 124, 134, 0.55), transparent);
+      animation: scan 3.2s ease-in-out infinite;
+      pointer-events: none;
+    }
+
+    .hero-tile svg {
+      width: 100%;
+      height: 140px;
+      display: block;
+    }
+
+    .controls {
+      padding: 14px 22px 18px;
+      border-bottom: 1px solid var(--line);
+      display: grid;
+      gap: 10px;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      align-items: center;
+      background: linear-gradient(180deg, #ffffffbe, #ffffff78);
+    }
+
+    input, select, button {
+      width: 100%;
+      min-height: 40px;
+      border-radius: 10px;
+      border: 1px solid var(--line);
+      padding: 8px 10px;
+      font: inherit;
+      color: var(--text);
+      background: #fff;
+      transition: box-shadow .2s ease, border-color .2s ease, transform .12s ease;
+    }
+
+    input:focus, select:focus, button:focus {
+      outline: none;
+      border-color: #7eb9c8;
+      box-shadow: 0 0 0 3px #dff0f6;
+    }
+
+    .search {
+      min-width: 220px;
+    }
+
+    button {
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(180deg, #fefefe, #f1f7fb);
+    }
+
+    button:hover {
+      border-color: #a9c8d9;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(180deg, #1599a4, #0e7c86);
+      color: #fff;
+      border-color: #0d7179;
+    }
+
+    .btn-primary:hover {
+      border-color: #0b646a;
+      box-shadow: 0 8px 16px rgba(14, 124, 134, 0.25);
+    }
+
+    .content {
+      padding: 18px 22px 24px;
+    }
+
+    .meta {
+      color: var(--muted);
+      font-size: 0.84rem;
+      margin-bottom: 10px;
+      min-height: 20px;
+    }
+
+    .card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+      margin: 12px 0;
+      background: linear-gradient(180deg, #ffffff, #f8fcff);
+      box-shadow: 0 5px 14px rgba(12, 37, 55, 0.06);
+      animation: reveal .25s ease;
+    }
+
+    .pill-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid #bad2df;
+      background: var(--accent-soft);
+      color: #154759;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+    }
+
+    .pill-cat-hypothetical {
+      background: #d9f7df;
+      border-color: #7bc48d;
+      color: #1f5f2f;
+    }
+
+    .pill-cat-demonstrated {
+      background: #fff3cd;
+      border-color: #e0bd66;
+      color: #72520b;
+    }
+
+    .pill-cat-active {
+      background: #f8d7da;
+      border-color: #d56a74;
+      color: #7f1d28;
+    }
+
+    h3 {
+      margin: 12px 0 8px 0;
+      line-height: 1.3;
+      font-size: 1.06rem;
+    }
+
+    a {
+      text-decoration: none;
+      color: #0b5a72;
+    }
+
+    a:hover {
+      text-decoration: underline;
+      text-decoration-thickness: 1.5px;
+      text-underline-offset: 2px;
+    }
+
+    .summary {
+      color: #243c4f;
+      line-height: 1.5;
+    }
+
+    .card-meta {
+      color: var(--muted);
+      font-size: 0.78rem;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px dashed #cfdee8;
+      word-break: break-word;
+    }
+
+    .empty {
+      border: 1px dashed #afc4d2;
+      border-radius: var(--radius);
+      padding: 22px;
+      text-align: center;
+      color: var(--muted);
+      background: #fbfdff;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes reveal {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes sweep {
+      from { transform: translateX(-45%); }
+      to { transform: translateX(45%); }
+    }
+
+    @keyframes scan {
+      0% { transform: translateY(-42px); opacity: 0.25; }
+      45% { opacity: 0.8; }
+      100% { transform: translateY(42px); opacity: 0.25; }
+    }
+
+    @media (max-width: 640px) {
+      body { padding: 12px; }
+      .hero { padding: 18px 14px 8px; }
+      .hero-tile-wrap { padding: 0 14px 12px; }
+      .hero-tile { min-height: 120px; }
+      .hero-tile svg { height: 120px; }
+      .controls { padding: 12px 14px 16px; }
+      .content { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="hero">
+      <div class="title-lockup">
+        <div class="title-kicker">Live Cyber Fusion</div>
+        <h2 class="title-main">AI Threat Intelligence Aggregator</h2>
+      </div>
+      <div class="subtitle">Consolidated signals from MITRE ATLAS, CISA KEV, NIST NVD, and arXiv.</div>
+    </div>
+
+    <div class="hero-tile-wrap">
+      <div class="hero-tile">
+        <svg viewBox="0 0 1080 180" aria-label="Animated cybersecurity and AI banner" role="img">
+          <defs>
+            <linearGradient id="shieldGradient" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#0ea5e9"/>
+              <stop offset="100%" stop-color="#0f766e"/>
+            </linearGradient>
+          </defs>
+          <path d="M90 124 Q220 36, 360 112 T650 108 T990 98" stroke="#9ad7ee" stroke-width="4" fill="none"/>
+          <path d="M90 142 Q235 58, 380 128 T680 122 T1000 114" stroke="#b8ebc8" stroke-width="3" fill="none"/>
+
+          <path d="M160 40 L255 72 L255 104 C255 128 231 146 160 157 C89 146 65 128 65 104 L65 72 Z" fill="url(#shieldGradient)" opacity="0.95"/>
+          <rect x="146" y="84" width="28" height="32" rx="4" fill="#ffffff"/>
+          <path d="M140 84 a20 20 0 0 1 40 0" fill="none" stroke="#ffffff" stroke-width="5"/>
+
+          <rect x="470" y="42" width="140" height="96" rx="14" fill="#22c55e" stroke="#15803d" stroke-width="3"/>
+          <rect x="502" y="68" width="76" height="44" rx="7" fill="#dcfce7"/>
+          <circle cx="525" cy="90" r="6" fill="#166534"/>
+          <circle cx="555" cy="90" r="6" fill="#166534"/>
+          <path d="M497 122 L583 122" stroke="#166534" stroke-width="5"/>
+          <g stroke="#22c55e" stroke-width="6">
+            <path d="M444 56 L470 56"/><path d="M444 84 L470 84"/><path d="M444 112 L470 112"/>
+            <path d="M610 56 L636 56"/><path d="M610 84 L636 84"/><path d="M610 112 L636 112"/>
+          </g>
+
+          <circle cx="885" cy="92" r="52" fill="none" stroke="#fb923c" stroke-width="3"/>
+          <circle cx="885" cy="92" r="33" fill="none" stroke="#fdba74" stroke-width="3"/>
+          <circle cx="885" cy="92" r="14" fill="#ffedd5" stroke="#f97316" stroke-width="3"/>
+          <path d="M885 92 L932 64" stroke="#ea580c" stroke-width="4"/>
+          <circle cx="932" cy="64" r="6" fill="#dc2626"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="controls">
+      <select id="category">
+        <option value="">All Categories</option>
+        <option>Hypothetical</option>
+        <option>Demonstrated</option>
+        <option>Active Exploitation</option>
+      </select>
+
+      <select id="source">
+        <option value="">All Sources</option>
+        <option value="mitre_atlas">MITRE ATLAS</option>
+        <option value="cisa_kev">CISA KEV</option>
+        <option value="nist_nvd">NIST NVD</option>
+        <option value="the_hacker_news">The Hacker News</option>
+        <option value="arxiv">arXiv</option>
+      </select>
+
+      <input id="q" class="search" placeholder="Search title or summary..." />
+      <button class="btn-primary" onclick="loadItems()">Search</button>
+      <button onclick="refreshNow()">Refresh Now</button>
+    </div>
+
+    <div class="content">
+      <div id="status" class="meta"></div>
+      <div id="items"></div>
+      <button id="load-more" style="display:none; margin-top: 10px;" onclick="loadMore()">Load More</button>
+    </div>
+  </div>
+
+<script>
+const PAGE_SIZE = 100;
+let currentOffset = 0;
+let loadedCount = 0;
+let isLoading = false;
+const seenKeys = new Set();
+
+async function refreshNow() {
+  document.getElementById("status").textContent = "Refreshing feeds...";
+  const r = await fetch("/api/refresh", { method: "POST" });
+  const j = await r.json();
+  document.getElementById("status").textContent =
+    "Refreshed: " + JSON.stringify(j.counts) + " at " + j.refreshed_at;
+  await loadItems(true);
+}
+
+function esc(s){ return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
+
+function categoryPillClass(category) {
+  if (category === "Hypothetical") return "pill-cat-hypothetical";
+  if (category === "Demonstrated") return "pill-cat-demonstrated";
+  if (category === "Active Exploitation") return "pill-cat-active";
+  return "";
+}
+
+function buildItemCard(it) {
+  const when = it.published_at ? new Date(it.published_at).toLocaleString() : "n/a";
+  const url = it.url || it.source_id;
+  return `
+      <div class="card">
+        <div class="pill-wrap">
+          <span class="pill ${categoryPillClass(it.category)}">${esc(it.category)}</span>
+          <span class="pill">${esc(it.source)}</span>
+          <span class="pill">conf ${Number(it.confidence).toFixed(2)}</span>
+        </div>
+        <h3>
+          <a href="${esc(url)}" target="_blank" rel="noreferrer">${esc(it.title)}</a>
+        </h3>
+        <div class="summary">${esc((it.summary||"").slice(0, 500))}${(it.summary||"").length>500?"...":""}</div>
+        <div class="card-meta">Published: ${esc(when)} | source_id: ${esc(it.source_id)}</div>
+      </div>
+    `;
+}
+
+function setLoadMoreVisible(visible) {
+  document.getElementById("load-more").style.display = visible ? "inline-block" : "none";
+}
+
+async function loadItems(reset = true) {
+  if (isLoading) return;
+  isLoading = true;
+  const category = document.getElementById("category").value;
+  const source = document.getElementById("source").value;
+  const q = document.getElementById("q").value;
+  const root = document.getElementById("items");
+  const loadMoreBtn = document.getElementById("load-more");
+  loadMoreBtn.disabled = true;
+
+  if (reset) {
+    currentOffset = 0;
+    loadedCount = 0;
+    seenKeys.clear();
+    root.innerHTML = "";
+    setLoadMoreVisible(false);
+  }
+
+  const params = new URLSearchParams();
+  if (category) params.set("category", category);
+  if (source) params.set("source", source);
+  if (q) params.set("q", q);
+  params.set("limit", String(PAGE_SIZE));
+  params.set("offset", String(currentOffset));
+
+  try {
+    const r = await fetch("/api/items?" + params.toString());
+    const items = await r.json();
+
+    if (reset && !items.length) {
+      root.innerHTML = `<div class="empty">No matching items found. Try a broader search or clear filters.</div>`;
+      document.getElementById("status").textContent = "Loaded 0 items.";
+      setLoadMoreVisible(false);
+      return;
+    }
+
+    let added = 0;
+    for (const it of items) {
+      const key = `${it.source}::${it.source_id}`;
+      if (seenKeys.has(key)) continue;
+      seenKeys.add(key);
+      root.innerHTML += buildItemCard(it);
+      added += 1;
+    }
+
+    loadedCount += added;
+    currentOffset += items.length;
+    setLoadMoreVisible(items.length === PAGE_SIZE);
+    document.getElementById("status").textContent = `Loaded ${loadedCount} items.`;
+  } finally {
+    isLoading = false;
+    loadMoreBtn.disabled = false;
+  }
+}
+
+function loadMore() {
+  loadItems(false);
+}
+
+document.getElementById("q").addEventListener("keydown", (e) => {
+  if (e.key === "Enter") loadItems(true);
+});
+
+loadItems(true);
+</script>
+</body>
+</html>
+

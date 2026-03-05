@@ -1,0 +1,12 @@
+# Web API framework and ASGI server
+fastapi
+uvicorn
+
+# HTTP and parsing utilities for ingestors
+requests
+python-dateutil
+lxml
+
+# Database and background scheduling
+sqlmodel
+apscheduler
